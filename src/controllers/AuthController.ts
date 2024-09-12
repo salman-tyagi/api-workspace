@@ -1,14 +1,25 @@
-import { Request, Response, NextFunction, RequestHandler } from 'express';
-import 'reflect-metadata';
+import { Request, Response, NextFunction } from 'express';
 
 import User, { IUser } from '../models/userModel';
 
-interface JSONResponse {
+import { post } from './decorators/routes';
+import { controller } from './decorators/controller';
+export interface JSONResponse {
   status: string;
-  data: IUser;
+  result?: number;
+  data?: IUser | IUser[];
+  message?: string;
 }
 
+export enum ResponseStatus {
+  Success = 'success',
+  Fail = 'fail',
+  Error = 'error'
+}
+
+@controller('/auth')
 class AuthController {
+  @post('/signup')
   async signup(
     req: Request<{}, {}, IUser>,
     res: Response<JSONResponse>,
@@ -18,7 +29,7 @@ class AuthController {
       const newUser = await User.create(req.body);
 
       return res.status(201).json({
-        status: 'success',
+        status: ResponseStatus.Success,
         data: newUser
       });
     } catch (err) {

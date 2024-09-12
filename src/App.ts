@@ -3,11 +3,13 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 
-import authRouter from './routes/authRoutes';
-import AppError from './utils/AppError';
-import globalErrorHandler from './controllers/globalErrorHandler';
+import { router as authRouter } from './controllers/decorators/controller';
 
 import './controllers/AuthController';
+import './controllers/UserController';
+
+import AppError from './utils/AppError';
+import globalErrorHandler from './controllers/globalErrorHandler';
 
 const { NODE_ENV, PORT = '', DB = '' } = process.env;
 
@@ -21,7 +23,7 @@ class App {
     this.app.use(morgan('dev'));
     this.app.use(express.json());
 
-    this.app.use('/api/v1/auth', authRouter);
+    this.app.use('/api/v1', authRouter);
 
     this.app.all('*', (req: Request, res: Response, next: NextFunction) => {
       return next(new AppError(`${req.originalUrl} does not exist`, 400));
