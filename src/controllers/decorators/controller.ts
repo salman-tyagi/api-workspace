@@ -1,10 +1,30 @@
-import express, { RequestHandler } from 'express';
+import express, {
+  NextFunction,
+  Request,
+  Response,
+  RequestHandler
+} from 'express';
 import 'reflect-metadata';
 
 import Methods from './methods';
 import MetadataKeys from './metadataKeys';
+import AppError from '../../utils/AppError';
 
 export const router = express.Router();
+
+const validateBody = (...keys: string[]): RequestHandler => {
+  return function (req: Request, res: Response, next: NextFunction) {
+    if (!req.body) {
+      return next(new AppError('Invalid request', 400));
+    }
+
+    for (const key of keys) {
+      if (!req.body[key]) {
+        return next(new AppError(`Please provide ${key}.`, 400));
+      }
+    }
+  };
+};
 
 export function controller(prefixPath: string): ClassDecorator {
   return function (target: Function): void {
@@ -23,14 +43,22 @@ export function controller(prefixPath: string): ClassDecorator {
         key
       );
 
-      const middleware =
+      const middlewares =
         Reflect.getMetadata(MetadataKeys.Middleware, target.prototype, key) ||
         [];
 
-      // console.log({ method, prefixPath, path, middleware, handler });
+      const validator =
+        Reflect.getMetadata(MetadataKeys.Validator, target.prototype, key) ||
+        [];
+
+      const middleware = validateBody(validator);
 
       if (path) {
-        router[method](`${prefixPath}${path}`, middleware, handler);
+        router[method](
+          `${prefixPath}${path}`,
+          [...middlewares, middleware],
+          handler
+        );
       }
     }
   };

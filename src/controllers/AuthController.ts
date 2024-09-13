@@ -1,30 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 
-import User, { IUser } from '../models/userModel';
-import { post, controller, use } from './decorators';
-export interface IResponse {
-  status: string;
-  result?: number;
-  data?: IUser | IUser[];
-  message?: string;
-}
+import IUser from '../models/interfaces/IUser';
+import IResponse from './interfaces/IResponse';
+import User from '../models/userModel';
+import { post, controller, bodyValidator } from './decorators';
 
-export enum ResponseStatus {
-  Success = 'success',
-  Fail = 'fail',
-  Error = 'error'
-}
+import ResponseStatus from './enums/ResponseStatus';
 
-function logger(req: Request, res: Response, next: NextFunction): void {
-  console.log('Middleware was called!');
-
-  next();
-  return;
-}
 @controller('/auth')
 class AuthController {
   @post('/signup')
-  @use(logger)
+  @bodyValidator('name, email, password, confirmPassword')
   async signup(
     req: Request<{}, {}, IUser>,
     res: Response<IResponse>,

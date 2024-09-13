@@ -3,7 +3,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 
-import { router as authRouter } from './controllers/decorators/controller';
+import { router } from './controllers/decorators';
 
 import './controllers/AuthController';
 import './controllers/UserController';
@@ -23,7 +23,7 @@ class App {
     this.app.use(morgan('dev'));
     this.app.use(express.json());
 
-    this.app.use('/api/v1', authRouter);
+    this.app.use('/api/v1', router);
 
     this.app.all('*', (req: Request, res: Response, next: NextFunction) => {
       return next(new AppError(`${req.originalUrl} does not exist`, 400));
