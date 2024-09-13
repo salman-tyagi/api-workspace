@@ -1,19 +1,31 @@
-import { RequestHandler } from 'express';
+import express, { RequestHandler } from 'express';
 import 'reflect-metadata';
-import express from 'express';
+
+import Methods from './methods';
+import MetadataKeys from './metadataKeys';
 
 export const router = express.Router();
 
 export function controller(prefixPath: string): ClassDecorator {
   return function (target: Function): void {
     for (const key in target.prototype) {
-      const path = Reflect.getMetadata('path', target.prototype, key) as string;
-      const method = target.prototype[key] as RequestHandler;
+      const path: string = Reflect.getMetadata(
+        MetadataKeys.Path,
+        target.prototype,
+        key
+      );
 
-      // console.log({ prefixPath, path });
+      const handler: RequestHandler = target.prototype[key];
 
-      router.post(`${prefixPath}${path}`, method);
-      router.get(`${prefixPath}${path}`, method);
+      const method: Methods = Reflect.getMetadata(
+        MetadataKeys.Method,
+        target.prototype,
+        key
+      );
+
+      if (path) {
+        router[method](`${prefixPath}${path}`, handler);
+      }
     }
   };
 }

@@ -1,17 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
 
 import User from '../models/userModel';
-import { JSONResponse, ResponseStatus } from './AuthController';
-
-import { get } from './decorators/routes';
-import { controller } from './decorators/controller';
+import { IResponse, ResponseStatus } from './AuthController';
+import { get, controller } from './decorators';
 
 @controller('')
 class UserController {
   @get('/users')
   async getAllUsers(
     req: Request,
-    res: Response<JSONResponse>,
+    res: Response<IResponse>,
     next: NextFunction
   ) {
     try {

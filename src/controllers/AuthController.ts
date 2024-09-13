@@ -1,10 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 
 import User, { IUser } from '../models/userModel';
-
-import { post } from './decorators/routes';
-import { controller } from './decorators/controller';
-export interface JSONResponse {
+import { post, controller } from './decorators';
+export interface IResponse {
   status: string;
   result?: number;
   data?: IUser | IUser[];
@@ -22,7 +20,7 @@ class AuthController {
   @post('/signup')
   async signup(
     req: Request<{}, {}, IUser>,
-    res: Response<JSONResponse>,
+    res: Response<IResponse>,
     next: NextFunction
   ) {
     try {
