@@ -1,28 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 
-import User, { IUser } from '../models/userModel';
+import IUser from '../models/interfaces/IUser';
+import IResponse from './interfaces/IResponse';
+import User from '../models/userModel';
+import { post, controller, bodyValidator } from './decorators';
 
-import { post } from './decorators/routes';
-import { controller } from './decorators/controller';
-export interface JSONResponse {
-  status: string;
-  result?: number;
-  data?: IUser | IUser[];
-  message?: string;
-}
-
-export enum ResponseStatus {
-  Success = 'success',
-  Fail = 'fail',
-  Error = 'error'
-}
+import ResponseStatus from './enums/ResponseStatus';
 
 @controller('/auth')
 class AuthController {
   @post('/signup')
+  @bodyValidator('name, email, password, confirmPassword')
   async signup(
     req: Request<{}, {}, IUser>,
-    res: Response<JSONResponse>,
+    res: Response<IResponse>,
     next: NextFunction
   ) {
     try {
