@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
 import User, { IUser } from '../models/userModel';
-import { post, controller } from './decorators';
+import { post, controller, use } from './decorators';
 export interface IResponse {
   status: string;
   result?: number;
@@ -15,9 +15,16 @@ export enum ResponseStatus {
   Error = 'error'
 }
 
+function logger(req: Request, res: Response, next: NextFunction): void {
+  console.log('Middleware was called!');
+
+  next();
+  return;
+}
 @controller('/auth')
 class AuthController {
   @post('/signup')
+  @use(logger)
   async signup(
     req: Request<{}, {}, IUser>,
     res: Response<IResponse>,

@@ -23,8 +23,14 @@ export function controller(prefixPath: string): ClassDecorator {
         key
       );
 
+      const middleware =
+        Reflect.getMetadata(MetadataKeys.Middleware, target.prototype, key) ||
+        [];
+
+      // console.log({ method, prefixPath, path, middleware, handler });
+
       if (path) {
-        router[method](`${prefixPath}${path}`, handler);
+        router[method](`${prefixPath}${path}`, middleware, handler);
       }
     }
   };

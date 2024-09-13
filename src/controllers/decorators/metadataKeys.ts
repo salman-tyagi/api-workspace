@@ -1,6 +1,8 @@
 enum MetadataKeys {
   Path = 'path',
-  Method = 'method'
+  Method = 'method',
+  Validator = 'validator',
+  Middleware = 'middleware'
 }
 
 export default MetadataKeys;
