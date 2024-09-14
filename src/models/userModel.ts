@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 import IUser from './interfaces/IUser';
 
@@ -6,7 +7,7 @@ const userSchema = new mongoose.Schema<IUser>(
   {
     name: {
       type: String,
-      required: [true, 'Name must required'],
+      required: [true, 'Name is required'],
       trim: true,
       maxlength: [30, 'Must be less than 30 characters'],
       minlength: [2, 'Must be greater than 2 characters']
@@ -27,7 +28,8 @@ const userSchema = new mongoose.Schema<IUser>(
       type: String,
       required: [true, 'Password is required'],
       minlength: [6, 'Must be at least 6 characters long'],
-      maxlength: [30, 'Must be less than 30 characters']
+      maxlength: [30, 'Must be less than 30 characters'],
+      select: false
     },
     confirmPassword: {
       type: String,
@@ -39,6 +41,19 @@ const userSchema = new mongoose.Schema<IUser>(
         message: 'Password mismatch'
       }
     },
+    verified: {
+      type: Boolean,
+      default: false
+    },
+    active: {
+      type: Boolean,
+      default: true
+    },
+    role: {
+      type: String,
+      enum: ['admin', 'user'],
+      default: 'user'
+    },
     createdAt: {
       type: Date,
       default: Date.now()
@@ -49,6 +64,24 @@ const userSchema = new mongoose.Schema<IUser>(
   }
 );
 
-const User = mongoose.model('User', userSchema);
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) {
+    return next();
+  }
+
+  this.password = await bcrypt.hash(this.password, 10);
+  this.confirmPassword = undefined!;
+
+  return next();
+});
+
+userSchema.methods.validatePassword = async (
+  userPassword: string,
+  hashedPassword: string
+) => {
+  return await bcrypt.compare(userPassword, hashedPassword);
+};
+
+const User = mongoose.model<IUser>('User', userSchema);
 
 export default User;

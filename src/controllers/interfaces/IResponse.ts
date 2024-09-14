@@ -5,6 +5,7 @@ interface IResponse {
   result?: number;
   data?: IUser | IUser[];
   message?: string;
+  token?: string;
 }
 
 export default IResponse;

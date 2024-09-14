@@ -12,8 +12,8 @@ import AppError from '../../utils/AppError';
 
 export const router = express.Router();
 
-const validateBody = (...keys: string[]): RequestHandler => {
-  return function (req: Request, res: Response, next: NextFunction) {
+const validateBody = (keys: string[]): RequestHandler => {
+  return function (req: Request, res: Response, next: NextFunction): void {
     if (!req.body) {
       return next(new AppError('Invalid request', 400));
     }
@@ -23,6 +23,8 @@ const validateBody = (...keys: string[]): RequestHandler => {
         return next(new AppError(`Please provide ${key}.`, 400));
       }
     }
+
+    return next();
   };
 };
 
@@ -43,11 +45,11 @@ export function controller(prefixPath: string): ClassDecorator {
         key
       );
 
-      const middlewares =
+      const middlewares: RequestHandler[] =
         Reflect.getMetadata(MetadataKeys.Middleware, target.prototype, key) ||
         [];
 
-      const validator =
+      const validator: string[] =
         Reflect.getMetadata(MetadataKeys.Validator, target.prototype, key) ||
         [];
 
