@@ -41,6 +41,10 @@ const userSchema = new mongoose.Schema<IUser>(
         message: 'Password mismatch'
       }
     },
+    verified: {
+      type: Boolean,
+      default: false
+    },
     createdAt: {
       type: Date,
       default: Date.now()
@@ -56,11 +60,18 @@ userSchema.pre('save', async function (next) {
     return next();
   }
 
-  this.password = await bcrypt.hash('very-secret-password', 10);
+  this.password = await bcrypt.hash(this.password, 10);
   this.confirmPassword = undefined!;
 
   return next();
 });
+
+userSchema.methods.validatePassword = async (
+  userPassword: string,
+  hashedPassword: string
+) => {
+  return await bcrypt.compare(userPassword, hashedPassword);
+};
 
 const User = mongoose.model<IUser>('User', userSchema);
 

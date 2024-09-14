@@ -4,13 +4,14 @@ const { SENDGRID_API_KEY, MAIL_FROM } = process.env;
 
 sendgrid.setApiKey(SENDGRID_API_KEY!);
 
-interface User {
+interface Options {
   name: string;
   email: string;
+  link?: string;
 }
 
 class SendMail {
-  static async welcomeMail({ name, email }: User) {
+  static async verifyEmail({ name, email, link }: Options) {
     try {
       const mailOptions = {
         to: email,
@@ -18,8 +19,15 @@ class SendMail {
         subject: 'Welcome to the Workspace',
         html: `
           <div>
-            <h3>Welcome to the Workspace, ${name}</h3>
-            <p>We're glad to have a user like you. Hope, you'll enjoy our services.</p>
+            <h3>Welcome, ${name}</h3>
+            <p>We're glad to have a user like you.</p>
+            <p>
+              Please verify your email by clicking <a href="${link}">here</a>.
+            </p>
+            <p>Hope, you'll enjoy our services.</p>
+
+            <h6>Regards,<h6>
+            <p>Workspace</p>
           </div>
         `
       };
