@@ -3,12 +3,12 @@ import { Request, Response, NextFunction } from 'express';
 import IUser from '../models/interfaces/IUser';
 import IResponse from './interfaces/IResponse';
 import User from '../models/userModel';
-import { post, controller, bodyValidator } from './decorators';
+import { post, controller, bodyValidator, get } from './decorators';
 
 import ResponseStatus from './enums/ResponseStatus';
 import AppError from '../utils/AppError';
 import SendMail from '../utils/SendMail';
-import generateJWT from '../utils/generateJWT';
+import { generateJWT, verifyJWT } from '../utils/helpers';
 
 interface ILogin {
   email: string;
@@ -36,7 +36,7 @@ class AuthController {
 
       const verifyEmailLink = `${req.protocol}://${req.get(
         'host'
-      )}/api/v1/verify-user/${token}`;
+      )}/api/v1/auth/verify-user/${token}`;
 
       SendMail.verifyEmail({
         name: newUser.name,
@@ -90,6 +90,33 @@ class AuthController {
       return res.status(200).json({
         status: ResponseStatus.Success,
         token
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  @get('/verify-user/:token')
+  async verifyUser(
+    req: Request<{ token: string }>,
+    res: Response<IResponse>,
+    next: NextFunction
+  ) {
+    try {
+      const { token } = req.params;
+      if (!token) return next(new AppError('Please provide token', 400));
+
+      const decode = verifyJWT(token, process.env.EMAIL_VERIFY_JWT_SECRET_KEY!);
+
+      const user = await User.findOneAndUpdate(
+        { _id: decode._id },
+        { $set: { verified: true } }
+      );
+      if (!user) return next(new AppError('Link expired', 401));
+
+      return res.status(200).json({
+        status: ResponseStatus.Success,
+        message: 'Email verified successfully'
       });
     } catch (err) {
       next(err);
