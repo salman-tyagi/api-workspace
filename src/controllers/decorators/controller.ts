@@ -24,8 +24,7 @@ const validateBody = (keys: string[]): RequestHandler => {
       }
     }
 
-    next();
-    return;
+    return next();
   };
 };
 

@@ -1,8 +1,8 @@
 interface IUser {
-  name: string | undefined;
-  email: string | undefined;
-  password: string | undefined;
-  confirmPassword: string | undefined;
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
   createdAt?: Date;
 }
 

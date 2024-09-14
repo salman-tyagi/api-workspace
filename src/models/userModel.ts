@@ -57,7 +57,7 @@ userSchema.pre('save', async function (next) {
   }
 
   this.password = await bcrypt.hash('very-secret-password', 10);
-  this.confirmPassword = undefined;
+  this.confirmPassword = undefined!;
 
   return next();
 });

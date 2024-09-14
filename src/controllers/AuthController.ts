@@ -7,6 +7,7 @@ import { post, controller, bodyValidator } from './decorators';
 
 import ResponseStatus from './enums/ResponseStatus';
 import AppError from '../utils/AppError';
+import SendMail from '../utils/SendMail';
 
 interface ILogin {
   email: string;
@@ -24,7 +25,9 @@ class AuthController {
   ) {
     try {
       const newUser = await User.create(req.body);
-      newUser.password = undefined;
+      newUser.password = undefined!;
+
+      SendMail.welcomeMail({ name: newUser.name, email: newUser.email });
 
       return res.status(201).json({
         status: ResponseStatus.Success,
