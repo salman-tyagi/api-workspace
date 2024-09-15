@@ -26,10 +26,34 @@ class SendMail {
             </p>
             <p>Hope, you'll enjoy our services.</p>
 
-            <h6>Regards,<h6>
-            <p>Workspace</p>
+            <h4>Regards,<h4>
+            <h4>Workspace</h4>
           </div>
         `
+      };
+
+      await sendgrid.send(mailOptions);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  static async resetPasswordMail({ name, email, link }: Options) {
+    try {
+      const mailOptions = {
+        to: email,
+        from: MAIL_FROM!,
+        subject: 'Your password reset link. Expires in 10 minutes',
+        html: `
+          <div>
+            <h3>Hi, ${name}</h3>
+            <p>Please click <a href="${link}">here</a> to reset your password.</p>
+            <p>If not, please ignore this email.</p>
+
+            <h4>Regards,<h4>
+            <h4>Workspace</h4>
+          </div>
+      `
       };
 
       await sendgrid.send(mailOptions);

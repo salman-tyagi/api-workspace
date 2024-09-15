@@ -8,12 +8,7 @@ import { post, controller, bodyValidator, get } from './decorators';
 
 import AppError from '../utils/AppError';
 import SendMail from '../utils/SendMail';
-import { generateJwt, verifyJwt } from '../utils/helpers';
-
-interface ILogin {
-  email: string;
-  password: string;
-}
+import { generateJwt, generateRandomToken, verifyJwt } from '../utils/helpers';
 
 @controller('/auth')
 class AuthController {
@@ -56,7 +51,7 @@ class AuthController {
   @post('/login')
   @bodyValidator('email', 'password')
   async login(
-    req: Request<{}, {}, ILogin>,
+    req: Request<{}, {}, { email: string; password: string }>,
     res: Response<IResponse>,
     next: NextFunction
   ) {
@@ -117,6 +112,81 @@ class AuthController {
       return res.status(200).json({
         status: ResponseStatus.Success,
         message: 'Email verified successfully'
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  @post('/forgot-password')
+  @bodyValidator('email')
+  async forgotPassword(
+    req: Request<{}, {}, { email: string }>,
+    res: Response<IResponse>,
+    next: NextFunction
+  ) {
+    try {
+      const { email } = req.body;
+
+      const user = await User.findOne({ email }, { name: 1, email: 1 });
+      if (!user) return next(new AppError('Incorrect email address', 400));
+
+      const resetToken = generateRandomToken(32);
+      user.passwordResetToken = resetToken;
+      user.passwordResetTokenExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+      await user.save();
+
+      const resetLink = `${req.protocol}://${req.get(
+        'host'
+      )}/api/v1/auth/reset-password/${resetToken}`;
+
+      SendMail.resetPasswordMail({
+        name: user.name,
+        email: user.email,
+        link: resetLink
+      });
+
+      return res.status(200).json({
+        status: ResponseStatus.Success,
+        message: 'Email sent successfully. Please check your mail'
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  @post('/reset-password/:resetToken')
+  @bodyValidator('password', 'confirmPassword')
+  async resetPassword(
+    req: Request<
+      { resetToken: string },
+      {},
+      { password: string; confirmPassword: string }
+    >,
+    res: Response<IResponse>,
+    next: NextFunction
+  ) {
+    try {
+      const { resetToken } = req.params;
+      const { password, confirmPassword } = req.body;
+
+      const user = await User.findOne({
+        passwordResetToken: resetToken,
+        passwordResetTokenExpiresAt: { $gt: Date.now() }
+      });
+
+      if (!user) return next(new AppError('Reset link expired. Please reset your password again', 400));
+
+      user.password = password;
+      user.confirmPassword = confirmPassword;
+      user.passwordResetToken = undefined!;
+      user.passwordResetTokenExpiresAt = undefined!;
+      user.passwordChangedAt = new Date();
+      await user.save({ validateBeforeSave: true });
+
+      return res.status(201).json({
+        status: ResponseStatus.Success,
+        message: 'Password changed successfully'
       });
     } catch (err) {
       next(err);

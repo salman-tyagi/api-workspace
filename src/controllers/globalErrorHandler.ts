@@ -4,8 +4,20 @@ import ResponseStatus from './enums/ResponseStatus';
 
 const { NODE_ENV } = process.env;
 
-const handleInvalidJwt = (): AppError => new AppError('Invalid token', 400);
-const handleExpiredJwt = (): AppError => new AppError('Token expired', 400);
+const handleValidationError = (err: AppError): AppError => {
+  const message = err.message
+    .split(':')
+    .slice(1)
+    .join('')
+    .toLocaleLowerCase()
+    .trim();
+  return new AppError(message, 400);
+};
+
+const handleInvalidJwtError = (): AppError =>
+  new AppError('Invalid token', 400);
+const handleExpiredJwtError = (): AppError =>
+  new AppError('Token expired', 400);
 
 const sendErrorDevelopment = (err: AppError, res: Response): Response => {
   return res.status(err.statusCode).json({
@@ -46,8 +58,9 @@ const globalErrorHandler = (
   if (NODE_ENV === 'production') {
     let error = err;
 
-    if (error.name === 'JsonWebTokenError') error = handleInvalidJwt();
-    if (error.name === 'TokenExpiredError') error = handleExpiredJwt();
+    if (error.name === 'ValidationError') error = handleValidationError(err);
+    if (error.name === 'JsonWebTokenError') error = handleInvalidJwtError();
+    if (error.name === 'TokenExpiredError') error = handleExpiredJwtError();
 
     if (error.isOperational) {
       return sendErrorProduction(error, res);
