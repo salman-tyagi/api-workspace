@@ -1,21 +1,16 @@
-import { NextFunction, Request, RequestHandler, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 import IResponse from './interfaces/IResponse';
 import User from '../models/userModel';
 import { get, controller, use } from './decorators';
 
 import ResponseStatus from './enums/ResponseStatus';
-
-const logger = (): RequestHandler => {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    console.log('Get users api hit');
-  };
-};
+import { protect } from '../middlewares/protect';
 
 @controller('')
 class UserController {
   @get('/users')
-  @use(logger)
+  @use(protect)
   async getAllUsers(
     req: Request,
     res: Response<IResponse>,

@@ -8,8 +8,10 @@ interface IUser {
   verified: boolean;
   active: boolean;
   role: Role;
+  passwordResetToken: string;
+  passwordResetTokenExpiresAt: Date;
+  passwordChangedAt: Date,
   createdAt?: Date;
-
   validatePassword(userPassword: string, hashedPassword: string): boolean;
 }
 

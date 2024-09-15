@@ -9,6 +9,17 @@ export function use(middleware: RequestHandler): MethodDecorator {
     key: string | symbol,
     desc: PropertyDescriptor
   ): void {
-    Reflect.defineMetadata(MetadataKeys.Middleware, middleware, target, key);
+    const middlewares = Reflect.getMetadata(
+      MetadataKeys.Middleware,
+      target,
+      key
+    ) || [];
+
+    Reflect.defineMetadata(
+      MetadataKeys.Middleware,
+      [...middlewares, middleware],
+      target,
+      key
+    );
   };
 }

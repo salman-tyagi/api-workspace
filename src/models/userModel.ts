@@ -54,6 +54,9 @@ const userSchema = new mongoose.Schema<IUser>(
       enum: ['admin', 'user'],
       default: 'user'
     },
+    passwordResetToken: String,
+    passwordResetTokenExpiresAt: Date,
+    passwordChangedAt: Date,
     createdAt: {
       type: Date,
       default: Date.now()
