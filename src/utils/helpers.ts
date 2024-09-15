@@ -1,12 +1,13 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Types } from 'mongoose';
 
+export const generateJwt = (
+  payload: { _id: Types.ObjectId },
+  secretKey: string,
+  timeToExpire: string
+) => jwt.sign(payload, secretKey, { expiresIn: timeToExpire });
 
-export const generateJWT = (
-  payload: { _id: Types.ObjectId }, secretKey: string, timeToExpire: number | string) => {
-  return jwt.sign(payload, secretKey, { expiresIn: timeToExpire });
-};
-
-export const verifyJWT = <T = JwtPayload>(token: string, secretKey: string): T => {
-  return jwt.verify(token, secretKey) as T;
-};
+export const verifyJwt = <T = JwtPayload>(
+  token: string,
+  secretKey: string
+): T => jwt.verify(token, secretKey) as T;

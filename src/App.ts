@@ -11,13 +11,13 @@ import './controllers/UserController';
 import AppError from './utils/AppError';
 import globalErrorHandler from './controllers/globalErrorHandler';
 
-const { NODE_ENV, PORT = '', DB = '' } = process.env;
+const { NODE_ENV, PORT, DB } = process.env;
 
 class App {
   private app: express.Express = express();
 
   constructor() {
-    this.connectDB(DB);
+    this.connectDB(DB!);
 
     this.app.use(helmet());
     this.app.use(morgan('dev'));
@@ -25,15 +25,15 @@ class App {
 
     this.app.use('/api/v1', router);
 
-    this.app.all('*', (req: Request, res: Response, next: NextFunction) => {
-      return next(new AppError(`${req.originalUrl} does not exist`, 400));
-    });
+    this.app.all('*', (req: Request, res: Response, next: NextFunction) =>
+      next(new AppError(`${req.originalUrl} does not exist`, 400))
+    );
 
     this.app.use(globalErrorHandler);
 
-    this.app.listen(Number(PORT), '127.0.0.1', () => {
-      console.log(`Listening on the port ${PORT} in ${NODE_ENV}`);
-    });
+    this.app.listen(Number(PORT), '127.0.0.1', () =>
+      console.log(`Listening on the port ${PORT} in ${NODE_ENV}`)
+    );
   }
 
   private async connectDB(uri: string) {

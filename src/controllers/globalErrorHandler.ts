@@ -7,7 +7,7 @@ const { NODE_ENV } = process.env;
 const handleInvalidJwt = (): AppError => new AppError('Invalid token', 400);
 const handleExpiredJwt = (): AppError => new AppError('Token expired', 400);
 
-const sendErrorDevelopment = (err: AppError, res: Response) => {
+const sendErrorDevelopment = (err: AppError, res: Response): Response => {
   return res.status(err.statusCode).json({
     status: err.status,
     message: err.message,
@@ -16,10 +16,17 @@ const sendErrorDevelopment = (err: AppError, res: Response) => {
   });
 };
 
-const sendErrorProduction = (err: AppError, res: Response) => {
+const sendErrorProduction = (err: AppError, res: Response): Response => {
   return res.status(err.statusCode).json({
     status: err.status,
     message: err.message
+  });
+};
+
+const sendUncaughtError = (res: Response): Response => {
+  return res.status(500).json({
+    status: ResponseStatus.Error,
+    message: 'Something went wrong'
   });
 };
 
@@ -34,23 +41,18 @@ const globalErrorHandler = (
   err.statusCode = err.statusCode || 500;
   err.status = err.status || ResponseStatus.Fail;
 
-  if (NODE_ENV === 'development') {
-    sendErrorDevelopment(err, res);
-  }
+  if (NODE_ENV === 'development') return sendErrorDevelopment(err, res);
 
   if (NODE_ENV === 'production') {
-    if (err.isOperational) {
-      let error = err;
+    let error = err;
 
-      if (err.name === 'JsonWebTokenError') error = handleInvalidJwt();
-      if (err.name === 'TokenExpiredError') error = handleExpiredJwt();
+    if (error.name === 'JsonWebTokenError') error = handleInvalidJwt();
+    if (error.name === 'TokenExpiredError') error = handleExpiredJwt();
 
-      sendErrorProduction(error, res);
+    if (error.isOperational) {
+      return sendErrorProduction(error, res);
     } else {
-      return res.status(500).json({
-        status: ResponseStatus.Error,
-        message: 'Something went wrong'
-      });
+      return sendUncaughtError(res);
     }
   }
 };

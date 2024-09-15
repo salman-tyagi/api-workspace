@@ -2,13 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 
 import IUser from '../models/interfaces/IUser';
 import IResponse from './interfaces/IResponse';
+import ResponseStatus from './enums/ResponseStatus';
 import User from '../models/userModel';
 import { post, controller, bodyValidator, get } from './decorators';
 
-import ResponseStatus from './enums/ResponseStatus';
 import AppError from '../utils/AppError';
 import SendMail from '../utils/SendMail';
-import { generateJWT, verifyJWT } from '../utils/helpers';
+import { generateJwt, verifyJwt } from '../utils/helpers';
 
 interface ILogin {
   email: string;
@@ -28,7 +28,7 @@ class AuthController {
       const newUser = await User.create(req.body);
       newUser.password = undefined!;
 
-      const token = generateJWT(
+      const verifyToken = generateJwt(
         { _id: newUser._id },
         process.env.EMAIL_VERIFY_JWT_SECRET_KEY!,
         process.env.EMAIL_VERIFY_JWT_EXPIRES_IN!
@@ -36,7 +36,7 @@ class AuthController {
 
       const verifyEmailLink = `${req.protocol}://${req.get(
         'host'
-      )}/api/v1/auth/verify-user/${token}`;
+      )}/api/v1/auth/verify-user/${verifyToken}`;
 
       SendMail.verifyEmail({
         name: newUser.name,
@@ -81,7 +81,7 @@ class AuthController {
         return next(new AppError('Please verify your email address', 401));
       }
 
-      const token = generateJWT(
+      const token = generateJwt(
         { _id: user._id },
         process.env.JWT_ACCESS_TOKEN_SECRET!,
         process.env.JWT_ACCESS_TOKEN_EXPIRES_IN!
@@ -106,7 +106,7 @@ class AuthController {
       const { token } = req.params;
       if (!token) return next(new AppError('Please provide token', 400));
 
-      const decode = verifyJWT(token, process.env.EMAIL_VERIFY_JWT_SECRET_KEY!);
+      const decode = verifyJwt(token, process.env.EMAIL_VERIFY_JWT_SECRET_KEY!);
 
       const user = await User.findOneAndUpdate(
         { _id: decode._id },
