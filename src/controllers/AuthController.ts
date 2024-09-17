@@ -4,11 +4,13 @@ import IUser from '../models/interfaces/IUser';
 import IResponse from './interfaces/IResponse';
 import ResponseStatus from './enums/ResponseStatus';
 import User from '../models/userModel';
-import { post, controller, bodyValidator, get } from './decorators';
+import { post, controller, bodyValidator, get, patch, use } from './decorators';
 
 import AppError from '../utils/AppError';
 import SendMail from '../utils/SendMail';
 import { generateJwt, generateRandomToken, verifyJwt } from '../utils/helpers';
+import { IUpdateUserRequest } from './interfaces/IUpdateUserRequest';
+import { protect } from '../middlewares/protect';
 
 @controller('/auth')
 class AuthController {
@@ -187,6 +189,32 @@ class AuthController {
       return res.status(201).json({
         status: ResponseStatus.Success,
         message: 'Password changed successfully'
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  @patch('/update-profile')
+  @bodyValidator('name', 'email')
+  @use(protect)
+  async updateUser(
+    req: IUpdateUserRequest,
+    res: Response<IResponse>,
+    next: NextFunction
+  ) {
+    try {
+      const { name, email } = req.body;
+
+      const user = await User.findOneAndUpdate(
+        { _id: req.user?._id },
+        { $set: { name, email } }
+      );
+      if (!user) return next(new AppError('No user found', 404));
+
+      return res.status(201).json({
+        status: ResponseStatus.Success,
+        message: 'User updated successfully'
       });
     } catch (err) {
       next(err);

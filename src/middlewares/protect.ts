@@ -5,7 +5,6 @@ import AppError from '../utils/AppError';
 import { verifyJwt } from '../utils/helpers';
 import IProtectRequest from './interfaces/IProtectRequest';
 
-
 export const protect = async (req: IProtectRequest, res: Response, next: NextFunction) => {
   try {
     const token = req.headers.authorization?.split(' ').at(1);

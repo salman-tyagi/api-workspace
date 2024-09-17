@@ -49,16 +49,17 @@ export function controller(prefixPath: string): ClassDecorator {
         Reflect.getMetadata(MetadataKeys.Middleware, target.prototype, key) ||
         [];
 
-      const validator: string[] =
+      const bodyProps: string[] =
         Reflect.getMetadata(MetadataKeys.Validator, target.prototype, key) ||
         [];
 
-      const middleware = validateBody(validator);
+      const validator = validateBody(bodyProps);
 
       if (path) {
         router[method](
           `${prefixPath}${path}`,
-          [...middlewares, middleware],
+          ...middlewares,
+          validator,
           handler
         );
       }
