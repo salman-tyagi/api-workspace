@@ -78,11 +78,11 @@ userSchema.pre('save', async function (next) {
   return next();
 });
 
-userSchema.methods.validatePassword = async (
+userSchema.methods.validatePassword = (
   userPassword: string,
   hashedPassword: string
-) => {
-  return await bcrypt.compare(userPassword, hashedPassword);
+): Promise<boolean> => {
+  return bcrypt.compare(userPassword, hashedPassword);
 };
 
 const User = mongoose.model<IUser>('User', userSchema);

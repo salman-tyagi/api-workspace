@@ -1,7 +1,12 @@
+// import { RequestHandler } from 'express';
 import 'reflect-metadata';
 
 import Methods from './methods';
 import MetadataKeys from './metadataKeys';
+
+// interface RequestHandlerPropertyDescriptor extends PropertyDescriptor {
+//   value?: RequestHandler;
+// }
 
 function routeBinder(method: string) {
   return function (path: string): MethodDecorator {

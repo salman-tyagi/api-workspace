@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "build": "rimraf build && tsc",
+    "start": "node --env-file .env build/App.js",
     "tsc": "tsc --watch",
     "node": "node --watch --env-file .env build/App.js",
-    "start": "concurrently npm:tsc npm:node"
+    "dev": "concurrently npm:tsc npm:node"
   },
   "author": "Salman Tyagi",
   "license": "ISC",
@@ -18,7 +20,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.1",
     "morgan": "^1.10.0",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "rimraf": "^6.0.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

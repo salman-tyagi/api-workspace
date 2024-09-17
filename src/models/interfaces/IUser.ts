@@ -12,7 +12,7 @@ interface IUser {
   passwordResetTokenExpiresAt: Date;
   passwordChangedAt: Date,
   createdAt?: Date;
-  validatePassword(userPassword: string, hashedPassword: string): boolean;
+  validatePassword(userPassword: string, hashedPassword: string): Promise<boolean>;
 }
 
 export default IUser;
