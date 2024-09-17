@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import IUser from '../../models/interfaces/IUser';
 
-interface IUserWithId extends IUser {
+export interface IUserWithId extends IUser {
   _id?: string;
 }
 

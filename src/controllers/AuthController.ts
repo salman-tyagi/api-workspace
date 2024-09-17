@@ -11,6 +11,7 @@ import SendMail from '../utils/SendMail';
 import { generateJwt, generateRandomToken, verifyJwt } from '../utils/helpers';
 import { IUpdateUserRequest } from './interfaces/IUpdateUserRequest';
 import { protect } from '../middlewares/protect';
+import IRequestWithChangePassword from './interfaces/IRequestWithChangePassword';
 
 @controller('/auth')
 class AuthController {
@@ -177,7 +178,13 @@ class AuthController {
         passwordResetTokenExpiresAt: { $gt: Date.now() }
       });
 
-      if (!user) return next(new AppError('Reset link expired. Please reset your password again', 400));
+      if (!user)
+        return next(
+          new AppError(
+            'Reset link expired. Please reset your password again',
+            400
+          )
+        );
 
       user.password = password;
       user.confirmPassword = confirmPassword;
@@ -215,6 +222,41 @@ class AuthController {
       return res.status(201).json({
         status: ResponseStatus.Success,
         message: 'User updated successfully'
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  @patch('/update-password')
+  @bodyValidator('currentPassword', 'password', 'confirmPassword')
+  @use(protect)
+  async changePassword(
+    req: IRequestWithChangePassword,
+    res: Response<IResponse>,
+    next: NextFunction
+  ) {
+    try {
+      const { currentPassword, password, confirmPassword } = req.body;
+
+      const user = await User.findOne({ _id: req.user?._id }, { password: 1 });
+
+      const isValidPassword = await user?.validatePassword(
+        currentPassword,
+        user.password
+      );
+
+      if (!isValidPassword) {
+        return next(new AppError('Incorrect current password', 401));
+      }
+
+      user!.password = password;
+      user!.confirmPassword = confirmPassword;
+      await user!.save({ validateBeforeSave: true });
+
+      return res.status(201).json({
+        status: ResponseStatus.Success,
+        message: 'Password updated successfully'
       });
     } catch (err) {
       next(err);

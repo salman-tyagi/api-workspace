@@ -53,15 +53,15 @@ const globalErrorHandler = (
   err.statusCode = err.statusCode || 500;
   err.status = err.status || ResponseStatus.Fail;
 
-  if (NODE_ENV === 'development') return sendErrorDevelopment(err, res);
+  let error = err;
+
+  if (error.name === 'ValidationError') error = handleValidationError(err);
+  if (error.name === 'JsonWebTokenError') error = handleInvalidJwtError();
+  if (error.name === 'TokenExpiredError') error = handleExpiredJwtError();
+
+  if (NODE_ENV === 'development') return sendErrorDevelopment(error, res);
 
   if (NODE_ENV === 'production') {
-    let error = err;
-
-    if (error.name === 'ValidationError') error = handleValidationError(err);
-    if (error.name === 'JsonWebTokenError') error = handleInvalidJwtError();
-    if (error.name === 'TokenExpiredError') error = handleExpiredJwtError();
-
     if (error.isOperational) {
       return sendErrorProduction(error, res);
     } else {
