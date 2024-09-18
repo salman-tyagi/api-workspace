@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "build": "rimraf build && tsc",
-    "start": "node --env-file .env build/App.js",
+    "start": "NODE_ENV=production node --env-file .env build/App.js",
     "tsc": "tsc --watch",
     "node": "node --watch --env-file .env build/App.js",
     "dev": "concurrently npm:tsc npm:node"

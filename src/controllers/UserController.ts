@@ -6,13 +6,16 @@ import { get, controller, use } from './decorators';
 
 import ResponseStatus from './enums/ResponseStatus';
 import { protect } from '../middlewares/protect';
+import allowedTo from '../middlewares/allowedTo';
+import IUser from '../models/interfaces/IUser';
 
 @controller('')
 class UserController {
   @get('/users')
+  @use(allowedTo('admin'))
   @use(protect)
   async getAllUsers(
-    req: Request,
+    req: Request<IUser>,
     res: Response<IResponse>,
     next: NextFunction
   ) {
@@ -25,7 +28,7 @@ class UserController {
         data: users
       });
     } catch (err) {
-      return next(err);
+      next(err);
     }
   }
 }

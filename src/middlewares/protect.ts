@@ -5,7 +5,7 @@ import AppError from '../utils/AppError';
 import { verifyJwt } from '../utils/helpers';
 import IProtectRequest from './interfaces/IProtectRequest';
 
-export const protect = async (req: IProtectRequest, res: Response, next: NextFunction) => {
+export const protect = async (req: IProtectRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const token = req.headers.authorization?.split(' ').at(1);
     if (!token) return next(new AppError('You are not logged in.', 403));
@@ -18,6 +18,6 @@ export const protect = async (req: IProtectRequest, res: Response, next: NextFun
     req.user = user;
     return next();
   } catch (err) {
-    return next(err);
+    next(err);
   }
 };
