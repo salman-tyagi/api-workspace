@@ -1,4 +1,4 @@
-type Role = 'admin' | 'user';
+export type Role = 'admin' | 'user';
 
 interface IUser {
   name: string;
@@ -10,7 +10,7 @@ interface IUser {
   role: Role;
   passwordResetToken: string;
   passwordResetTokenExpiresAt: Date;
-  passwordChangedAt: Date,
+  passwordChangedAt: Date;
   createdAt?: Date;
   validatePassword(userPassword: string, hashedPassword: string): Promise<boolean>;
 }
