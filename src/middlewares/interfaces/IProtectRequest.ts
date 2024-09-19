@@ -3,7 +3,7 @@ import { Request } from 'express';
 import { Role } from '../../models/interfaces/IUser';
 import { Types } from 'mongoose';
 
-export default interface IProtectRequest extends Request {
+interface IProtectRequest extends Request {
   user?: {
     _id: Types.ObjectId;
     name: string;
@@ -15,3 +15,5 @@ export default interface IProtectRequest extends Request {
     createdAt?: Date;
   };
 }
+
+export default IProtectRequest;

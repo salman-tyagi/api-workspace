@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 
 import User from '../models/userModel';
-import { get, controller, use } from './decorators';
-import {protect} from '../middlewares/protect';
+import { get, controller, use, del } from './decorators';
+import { protect } from '../middlewares/protect';
 import allowedTo from '../middlewares/allowedTo';
 
 import IResponse from './interfaces/IResponse';
@@ -52,6 +52,28 @@ class UserController {
         status: ResponseStatus.Success,
         data: user
       });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  @use(allowedTo('admin'))
+  @use(protect)
+  @del('/users/:id')
+  async deleteAccount(
+    req: Request<{ id: string }>,
+    res: Response<IResponse>,
+    next: NextFunction
+  ) {
+    try {
+      const { id } = req.params;
+      if (!id) return next(new AppError('Provide user id', 400));
+
+      await User.findOneAndDelete({ _id: id });
+
+      return res
+        .status(204)
+        .json({ status: ResponseStatus.Success, message: 'Account deleted' });
     } catch (err) {
       next(err);
     }

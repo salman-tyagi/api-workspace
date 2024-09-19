@@ -55,6 +55,8 @@ export function controller(prefixPath: string): ClassDecorator {
 
       const validator = validateBody(bodyProps);
 
+      // console.log({ method, prefixPath, path, middlewares, validator, handler });
+
       if (path) {
         router[method](
           `${prefixPath}${path}`,
