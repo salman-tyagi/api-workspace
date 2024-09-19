@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
+
 import AppError from '../utils/AppError';
+
 import ResponseStatus from './enums/ResponseStatus';
 
 const { NODE_ENV } = process.env;
@@ -11,6 +13,7 @@ const handleValidationError = (err: AppError): AppError => {
     .join('')
     .toLocaleLowerCase()
     .trim();
+    
   return new AppError(message, 400);
 };
 

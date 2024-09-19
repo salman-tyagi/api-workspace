@@ -1,18 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 
-import IResponse from './interfaces/IResponse';
 import User from '../models/userModel';
 import { get, controller, use } from './decorators';
-
-import ResponseStatus from './enums/ResponseStatus';
-import { protect } from '../middlewares/protect';
+import {protect} from '../middlewares/protect';
 import allowedTo from '../middlewares/allowedTo';
+
+import IResponse from './interfaces/IResponse';
 import IUser from '../models/interfaces/IUser';
+import ResponseStatus from './enums/ResponseStatus';
+import AppError from '../utils/AppError';
 
 @controller('')
 class UserController {
   @get('/users')
-  @use(allowedTo('admin'))
+  @use(allowedTo('admin', 'user'))
   @use(protect)
   async getAllUsers(
     req: Request<IUser>,
@@ -26,6 +27,30 @@ class UserController {
         status: ResponseStatus.Success,
         result: users.length,
         data: users
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  @get('/users/:id')
+  @use(protect)
+  async getUser(
+    req: Request<{ id: string }>,
+    res: Response<IResponse>,
+    next: NextFunction
+  ) {
+    try {
+      const { id } = req.params;
+
+      const user = await User.findOne({ _id: id });
+      if (!user) {
+        return next(new AppError('User not found', 404));
+      }
+
+      return res.status(200).json({
+        status: ResponseStatus.Success,
+        data: user
       });
     } catch (err) {
       next(err);

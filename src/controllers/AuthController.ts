@@ -1,17 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 
-import IUser from '../models/interfaces/IUser';
-import IResponse from './interfaces/IResponse';
-import ResponseStatus from './enums/ResponseStatus';
 import User from '../models/userModel';
-import { post, controller, bodyValidator, get, patch, use } from './decorators';
-
+import { post, controller, bodyValidator, get, patch, use, del } from './decorators';
 import AppError from '../utils/AppError';
 import SendMail from '../utils/SendMail';
 import { generateJwt, generateRandomToken, verifyJwt } from '../utils/helpers';
-import { IUpdateUserRequest } from './interfaces/IUpdateUserRequest';
 import { protect } from '../middlewares/protect';
+
+import IUser from '../models/interfaces/IUser';
+import IResponse from './interfaces/IResponse';
+import { IUpdateUserRequest } from './interfaces/IUpdateUserRequest';
+import ResponseStatus from './enums/ResponseStatus';
 import IRequestWithChangePassword from './interfaces/IRequestWithChangePassword';
+import IProtectRequest from '../middlewares/interfaces/IProtectRequest';
 
 @controller('/auth')
 class AuthController {
@@ -79,6 +80,12 @@ class AuthController {
         return next(new AppError('Please verify your email address', 401));
       }
 
+      if (!user.active) {
+        return next(
+          new AppError(`Cant't login, you have deleted your account`, 401)
+        );
+      }
+
       const token = generateJwt(
         { _id: user._id },
         process.env.JWT_ACCESS_TOKEN_SECRET!,
@@ -134,6 +141,10 @@ class AuthController {
       const user = await User.findOne({ email }, { name: 1, email: 1 });
       if (!user) return next(new AppError('Incorrect email address', 400));
 
+      if (!user.active) {
+        return next(new AppError('Your account has been deleted', 401));
+      }
+
       const resetToken = generateRandomToken(32);
       user.passwordResetToken = resetToken;
       user.passwordResetTokenExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
@@ -175,7 +186,8 @@ class AuthController {
 
       const user = await User.findOne({
         passwordResetToken: resetToken,
-        passwordResetTokenExpiresAt: { $gt: Date.now() }
+        passwordResetTokenExpiresAt: { $gt: Date.now() },
+        active: true
       });
 
       if (!user)
@@ -257,6 +269,28 @@ class AuthController {
       return res.status(201).json({
         status: ResponseStatus.Success,
         message: 'Password updated successfully'
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  @del('/delete-account')
+  @use(protect)
+  async deleteAccount(
+    req: IProtectRequest,
+    res: Response<IResponse>,
+    next: NextFunction
+  ) {
+    try {
+      await User.findOneAndUpdate(
+        { _id: req.user?._id },
+        { $set: { active: false } }
+      );
+
+      return res.status(204).json({
+        status: ResponseStatus.Success,
+        message: 'User deleted successfully'
       });
     } catch (err) {
       next(err);
